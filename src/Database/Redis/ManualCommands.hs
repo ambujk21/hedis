@@ -1257,21 +1257,6 @@ xclaimRequest stream group consumer minIdleTime XClaimOpts{..} messageIds =
           forceArg = if xclaimForce then ["FORCE"] else []
           optArg name maybeArg = maybe [] (\x -> [name, encode x]) maybeArg
 
-xAutoClaim
-    :: (RedisCtx m f)
-    => ByteString -- ^ stream
-    -> ByteString -- ^ group
-    -> ByteString -- ^ consumer
-    -> Integer -- ^ min idle time
-    -> ByteString -- ^ start ID
-    -> XAutoClaimOpts -- ^ count
-    -> m (f [StreamsRecord])
-xAutoClaim stream group consumer minIdleTime startId XAutoClaimOpts{..} = sendRequest $
-    ["XAUTOCLAIM", stream, group, consumer, encode minIdleTime, startId] ++ optArgs
-    where optArgs = countArg ++ justIdsArg
-          countArg = maybe [] (\x -> ["COUNT", encode x]) xcount
-          justIdsArg = if xjustIds then ["JUSTID"] else []
-
 xclaim
     :: (RedisCtx m f)
     => ByteString -- ^ stream
@@ -1283,6 +1268,21 @@ xclaim
     -> m (f [StreamsRecord])
 xclaim stream group consumer minIdleTime opts messageIds = sendRequest $
     xclaimRequest stream group consumer minIdleTime opts messageIds
+
+xAutoClaim
+    :: (RedisCtx m f)
+    => ByteString -- ^ stream
+    -> ByteString -- ^ group
+    -> ByteString -- ^ consumer
+    -> Integer -- ^ min idle time
+    -> ByteString -- ^ start ID
+    -> XAutoClaimOpts -- ^ count
+    -> m (f XAutoClaimResponse)
+xAutoClaim stream group consumer minIdleTime startId XAutoClaimOpts{..} = sendRequest $
+    ["XAUTOCLAIM", stream, group, consumer, encode minIdleTime, startId] ++ optArgs
+    where optArgs = countArg ++ justIdsArg
+          countArg = maybe [] (\x -> ["COUNT", encode x]) xcount
+          justIdsArg = if xjustIds then ["JUSTID"] else []
 
 xclaimJustIds
     :: (RedisCtx m f)
